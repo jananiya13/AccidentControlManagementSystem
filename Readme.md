@@ -1,68 +1,25 @@
-## What is Object Detection?
-Object detection is a branch of computer vision which deals with the localization and the identification of an object. Object localization and identification are two different tasks that are put together to achieve this singular goal of object detection.<br>
-Specifying the location of an object in an image or a video stream is called object localization and assigning the object to a specific label, class, or description is called object identification.<br>
- Some architectures that have performed tremendously well on the **<a href="https://drive.google.com/file/d/1whaHiSKfcb1Iws62Bzb-j2qeYx4WsZa-/view?usp=sharing">COCO dataset</a>**.<br>
-The model architectures include:<br>
-*1. CenterNet<br>
-2. EfficientDet<br>
-3. MobileNet<br>
-4. ResNet<br>
-5. R-CNN<br>
-6. ExtremeNet<br>*
+### Pot-Hole
 
-Here we are going to use `MobileNet` architecture. Download the architecture from <a href="https://drive.google.com/file/d/1u7Fy7sS8Xp39HKgjhjuwlbDN7s5l1wjh/view?usp=sharing">Here</a><br>
-<b> MobileNet</b> is an object detector (2017) used as an efficient CNN architecture designed for mobile and embedded vision application. This architecture uses proven depth-wise separable convolutions to build lightweight deep neural networks. More information about the architecture can be found <a href="https://drive.google.com/file/d/1bxU16LQOs2MR6wCmpehwn6s_-S5dN4_B/view?usp=sharing">Here</a>.<br>
-## Optimizing the model
-Freezing the model means producing a singular file containing information about the graph and checkpoint variables, but saving these hyperparameters as constants within the graph structure. This eliminates additional information saved in the checkpoint files such as the gradients at each point, which are included so that the model can be reloaded and training continued from where you left off. As this is not needed when serving a model purely for inference they are discarded in freezing.
-For more details checkout <a href="https://cv-tricks.com/how-to/freeze-tensorflow-models/#:~:text=Freezing%20is%20the%20process%20to,a%20serialized%20MetaGraphDef%20protocol%20buffer.">This</a>.
-Download the `frozen_inference_graph.pb` freezing model from <a href="https://drive.google.com/file/d/1Z-6HOmtKEnFc-pV_GEJURFadQY2rDDba/view?usp=sharing">Here</a>.
+A pothole is a depression in a road surface, usually asphalt pavement, where traffic has removed broken pieces of the pavement. It is usually the result of water in the underlying soil structure and traffic passing over the affected area. Water first weakens the underlying soil; traffic then fatigues and breaks the poorly supported asphalt surface in the affected area. Continued traffic action ejects both asphalt and the underlying soil material to create a hole in the pavement.<br>
+### Formation
 
-## Working
-This module is a part of Accident Control Management System. This will helpful in detection and recognition of objects. With this if any things is comes in front of vehicle then it will detect that and display the visuals. With the help of that visuals driver will able to take proper decision at right time.<br>
-This module will work on IP WebCam by default. You can find the setup of IP WebCam is <a href="https://mishraabhi8924.medium.com/access-the-android-camera-to-python-using-opencv-3d5901f01f23">Here</a>.
-This module will also work with system camera. To access the system camera use below code block:- <br>
+According to the US Army Corps of Engineers, pothole formation requires two factors to be present at the same time: water and traffic. Water weakens the soil beneath the pavement while traffic applies the loads that stress the pavement past the breaking point. Potholes form progressively from fatigue of the road surface which can lead to a precursor failure pattern known as crocodile (or alligator) cracking. Eventually, chunks of pavement between the fatigue cracks gradually work loose, and may then be plucked or forced out of the surface by continued wheel loads to create a pothole.<br>
 
-    import cv2 <br>
-    thres = 0.45 # Threshold to detect object<br>
-    cap = cv2.VideoCapture(1) #fill the index of your system camera, it is either 0,1 or 2<br>
-    cap.set(3,1280)<br>
-    cap.set(4,720)<br>
-    cap.set(10,70)<br>
-    classNames= []<br>
-    classFile = 'coco.names'<br>
-    with open(classFile,'rt') as f:<br>
-    classNames = f.read().rstrip('n').split('n')<br>
-    configPath = 'ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'<br>
-    weightsPath = 'frozen_inference_graph.pb'<br>
-    net = cv2.dnn_DetectionModel(weightsPath,configPath)<br>
-    net.setInputSize(320,320)<br>
-    net.setInputScale(1.0/ 127.5)<br>
-    net.setInputMean((127.5, 127.5, 127.5))<br>
-    net.setInputSwapRB(True)<br>
-    while True:<br>
-      success,img = cap.read()<br>
-      classIds, confs, bbox = net.detect(img,confThreshold=thres)<br>
-      print(classIds,bbox)<br>
-      if len(classIds) != 0:<br>
-        for classId, confidence,box in zip(classIds.flatten(),confs.flatten(),bbox):<br>
-          cv2.rectangle(img,box,color=(0,255,0),thickness=2)<br>
-          cv2.putText(img,classNames[classId-1].upper(),(box[0]+10,box[1]+30),
-          cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)<br>
-          cv2.putText(img,str(round(confidence*100,2)),(box[0]+200,box[1]+30),
-          cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)<br>
-      cv2.imshow('Output',img)<br>
-      k=cv2.waitKey(1)<br>
-      if k:<br>
-        break<br>
-    cv2.destroyAllWindows()<br>
-    #release the frame<br>
-    cap.release()<br>
-## Output Screenshot
-<img src="../templet/object1.jpeg" alt="Object-detction-output-1"/><br>
-<img src="../templet/object2.jpeg" alt="Object-detction-output-2"/>
+In areas subject to freezing and thawing, frost heaving can damage a pavement and create openings for water to enter. In the spring, thaw of pavements accelerates this process when the thawing of upper portions of the soil structure in a pavement cannot drain past still-frozen lower layers, thus saturating the supporting soil and weakening it.<br>
 
-## How to run the script 
-You can run this script by using cmd command, that is:<br>
-   `python objectdetection-final.py`
-   
-For tracking the script follow <a href="https://mishraabhi8924.medium.com/how-to-track-our-python-script-files-f56fe1228d3f">This</a>:point_left: link
+Potholes can grow to several feet in width, though they usually only develop to depths of a few inches. If they become large enough, damage to tires, wheels, and vehicle suspensions is liable to occur. Serious road accidents can occur as a direct result, especially on those roads where vehicle speeds are greater.
+<br>
+Potholes may result from four main causes:
+<br>
+1. Insufficient pavement thickness to support traffic during freeze/thaw periods without localized failures<br>
+2. Insufficient drainage<br>
+3. Failures at utility trenches and castings (manhole and drain casings)<br>
+4. Pavement defects and cracks left unmaintained and unsealed so as to admit moisture and compromise the structural integrity of the pavement<br>
+
+### Working 
+We can classify the dataset which either download from kaggle or built your own. After that save the model for future use. Open camera so that we can detect real time pot hole. This method is also applicable on images. Taking the input from camera and processed it using CNN and predict with model which is already saved. This process will return the class name and probability. Used class name and probability as output. The output will classify into three categories that are:<br> 1. Pot-Hole<br>2. Plain-Road<br>3. None<br>
+
+### Outputs
+<img src="../templet/pot-hole1.jpeg" alt="pot-hole-output" hight="250px" width="250px"/><br>
+<img src="../templet/pot-hole2.jpeg" alt="pot-hole-output" hight="250px" width="250px"/><br>
+<img src="../templet/pot-hole3.jpeg" alt="pot-hole-output" hight="250px" width="250px"/><br>

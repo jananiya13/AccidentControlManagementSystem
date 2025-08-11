@@ -1,53 +1,112 @@
-import cv2
+#_training_code
+import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
+import tensorflow as tf
+from tensorflow.keras.layers import Flatten
+from keras.models import Sequential, Model, load_model
+from keras.callbacks import EarlyStopping, Callback
+from keras.layers import Dense, Dropout, Activation, Flatten, Lambda, ELU,GlobalAveragePooling2D
+from keras import regularizers
+from keras.layers.convolutional import Convolution2D, Cropping2D, Conv2D
+from keras.layers.pooling import MaxPooling2D
+from tensorflow.keras.optimizers import Adam
+from sklearn.utils import shuffle
+from keras.utils import np_utils
+import time, cv2, glob
+global inputShape,size
+def kerasModel4():
+        model = Sequential()
+        model.add(Conv2D(16, (8, 8), strides=(4, 4), padding='valid', input_shape=(size,size,1)))
+        model.add(Activation('relu'))
+        model.add(Conv2D(32, (5, 5), padding="same"))
+        model.add(Activation('relu'))
+        model.add(GlobalAveragePooling2D())
+        model.add(Dense(512))
+        model.add(Dropout(.1))
+        model.add(Activation('relu'))
+        model.add(Dense(2))
+        model.add(Activation('softmax'))
+        return model
+size=300
+ ## load Training data : pothole
+potholeTrainImages = glob.glob("My Dataset/train/Pothole/*.jpg")
+potholeTrainImages.extend(glob.glob("My Dataset/train/Pothole/*.jpeg"))
+potholeTrainImages.extend(glob.glob("My Dataset/train/Pothole/*.png"))
+train1 = [cv2.imread(img,0) for img in potholeTrainImages]
+for i in range(0,len(train1)):
+    train1[i] = cv2.resize(train1[i],(size,size))
+temp1 = np.asarray(train1)
+#  ## load Training data : non-pothole
+nonPotholeTrainImages = glob.glob("My Dataset/train/Plain/*.jpg")
+train2 = [cv2.imread(img,0) for img in nonPotholeTrainImages]
+for i in range(0,len(train2)):
+    train2[i] = cv2.resize(train2[i],(size,size))
+temp2 = np.asarray(train2)
+## load Testing data : non-pothole
+nonPotholeTestImages = glob.glob("My Dataset/test/Plain/*.jpg")
+test2 = [cv2.imread(img,0) for img in nonPotholeTestImages]
+for i in range(0,len(test2)):
+    test2[i] = cv2.resize(test2[i],(size,size))
+temp4 = np.asarray(test2)
+potholeTestImages = glob.glob("My Dataset/test/Pothole/*.jpg")
+test1 = [cv2.imread(img,0) for img in potholeTestImages]
+for i in range(0,len(test1)):
+    test1[i] = cv2.resize(test1[i],(size,size))
+temp3 = np.asarray(test1)
+X_train = []
+X_train.extend(temp1)
+X_train.extend(temp2)
+X_train = np.asarray(X_train)
+X_test = []
+X_test.extend(temp3)
+X_test.extend(temp4)
+X_test = np.asarray(X_test)
+y_train1 = np.ones([temp1.shape[0]],dtype = int)
+y_train2 = np.zeros([temp2.shape[0]],dtype = int)
+y_test1 = np.ones([temp3.shape[0]],dtype = int)
+y_test2 = np.zeros([temp4.shape[0]],dtype = int)
+print(y_train1[0])
+print(y_train2[0])
+print(y_test1[0])
+print(y_test2[0])
+y_train = []
+y_train.extend(y_train1)
+y_train.extend(y_train2)
+y_train = np.asarray(y_train)
+y_test = []
+y_test.extend(y_test1)
+y_test.extend(y_test2)
+y_test = np.asarray(y_test)
+X_train,y_train = shuffle(X_train,y_train)
+X_test,y_test = shuffle(X_test,y_test)
+X_train = X_train.reshape(X_train.shape[0], size, size, 1)
+X_test = X_test.reshape(X_test.shape[0], size, size, 1)
+y_train = np_utils.to_categorical(y_train)
+y_test = np_utils.to_categorical(y_test)
+print("train shape X", X_train.shape)
+print("train shape y", y_train.shape)
 
-thres = 0.45 # Threshold to detect object
-nms_threshold = 0.2
-cap = cv2.VideoCapture("run1.mp4")
-# cap.set(3,1280)
-# cap.set(4,720)
-# cap.set(10,150)
+inputShape = (size, size, 1)
+model = kerasModel4()
 
-classNames= []
-classFile = 'coco.names'
-with open(classFile,'rt') as f:
-    classNames = f.read().rstrip('\n').split('\n')
+X_train = X_train/255
+X_test = X_test/255
 
-#print(classNames)
-configPath = 'ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
-weightsPath = 'frozen_inference_graph.pb'
+model.compile('adam', 'categorical_crossentropy', ['accuracy'])
+history = model.fit(X_train, y_train, epochs=1000,validation_split=0.1)
 
-net = cv2.dnn_DetectionModel(weightsPath,configPath)
-net.setInputSize(320,320)
-net.setInputScale(1.0/ 127.5)
-net.setInputMean((127.5, 127.5, 127.5))
-net.setInputSwapRB(True)
+print("")
 
-while True:
-    success,img = cap.read()
-    if success:
-        classIds, confs, bbox = net.detect(img,confThreshold=thres)
-        bbox = list(bbox)
-        confs = list(np.array(confs).reshape(1,-1)[0])
-        confs = list(map(float,confs))
-        #print(type(confs[0]))
-        #print(confs)
+metricsTrain = model.evaluate(X_train, y_train)
+print("Training Accuracy: ",metricsTrain[1]*100,"%")
 
-        indices = cv2.dnn.NMSBoxes(bbox,confs,thres,nms_threshold)
-        #print(indices)
+print("")
 
-        for i in indices:
-            i = i[0]
-            box = bbox[i]
-            x,y,w,h = box[0],box[1],box[2],box[3]
-            cv2.rectangle(img, (x,y),(x+w,h+y), color=(0, 255, 0), thickness=2)
-            cv2.putText(img,classNames[classIds[i][0]-1].upper(),(box[0]+10,box[1]+30),
-                        cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),2)
-    else:
-        break
+metricsTest = model.evaluate(X_test,y_test)
+print("Testing Accuracy: ",metricsTest[1]*100,"%")
 
-    cv2.imshow("Output",img)
-    q=cv2.waitKey(1)
-    if (q==ord("q")):
-        break
-cv2.destroyAllWindows()
+print("Saving model weights and configuration file")
+model.save('latest_full_model.h5')
+print("Saved model to disk")
